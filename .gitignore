@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.claude
+*.log
+.env
+CLAUDE.md
+coverage/
+*.tgz
+.npm
+.nyc_output
