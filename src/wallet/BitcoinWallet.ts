@@ -1,14 +1,17 @@
 import { BaseWallet } from './BaseWallet';
-import { CoinWallet, WalletConfig } from '../types/wallet';
+import { CoinWallet, WalletConfig, Transaction } from '../types/wallet';
 import { CryptoUtils } from '../utils/crypto';
+import { TransactionManager } from './TransactionManager';
 import * as crypto from 'crypto';
 
 export class BitcoinWallet extends BaseWallet {
   private static readonly BITCOIN_MAINNET_PREFIX = 0x00;
   private static readonly BITCOIN_TESTNET_PREFIX = 0x6f;
+  private transactionManager: TransactionManager;
 
   constructor(config: WalletConfig, mnemonic?: string) {
     super(config, mnemonic);
+    this.transactionManager = new TransactionManager();
   }
 
   generateAddress(derivationPath: string = "m/44'/0'/0'/0/0"): CoinWallet {
@@ -61,5 +64,20 @@ export class BitcoinWallet extends BaseWallet {
     }
 
     return result;
+  }
+
+  sendTransaction(from: string, to: string, amount: number, fee?: number): Transaction {
+    return this.transactionManager.createTransaction(from, to, amount, fee);
+  }
+
+  async broadcastTransaction(transaction: Transaction): Promise<boolean> {
+    return this.transactionManager.broadcastTransaction(transaction);
+  }
+
+  getTransactionHistory(address?: string): Transaction[] {
+    if (address) {
+      return this.transactionManager.getTransactionsByAddress(address);
+    }
+    return this.transactionManager.getTransactions();
   }
 }
