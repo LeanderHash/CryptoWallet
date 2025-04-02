@@ -40,4 +40,36 @@ export class CryptoUtils {
   static hash160(data: Buffer): Buffer {
     return this.ripemd160(this.sha256(data));
   }
+
+  static doubleSha256(data: Buffer): Buffer {
+    return this.sha256(this.sha256(data));
+  }
+
+  static generateSecureRandom(length: number = 32): Buffer {
+    return crypto.randomBytes(length);
+  }
+
+  static encodeBase58Check(payload: Buffer): string {
+    const checksum = this.doubleSha256(payload).slice(0, 4);
+    const combined = Buffer.concat([payload, checksum]);
+    return this.base58Encode(combined);
+  }
+
+  static base58Encode(buffer: Buffer): string {
+    const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    let result = '';
+    let num = BigInt('0x' + buffer.toString('hex'));
+
+    while (num > 0n) {
+      const remainder = Number(num % 58n);
+      result = alphabet[remainder] + result;
+      num = num / 58n;
+    }
+
+    for (let i = 0; i < buffer.length && buffer[i] === 0; i++) {
+      result = '1' + result;
+    }
+
+    return result;
+  }
 }
